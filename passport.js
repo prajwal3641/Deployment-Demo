@@ -20,7 +20,7 @@ app.use(passport.session());
 
 authUser = (user, password, done) => {
   console.log(`Value of "user" is ${user}`);
-  console.log(`Value of "password" is ${password}`);
+  console.log(`Valuey of "password" is ${password}`);
 
   let authenticated_user = {
     id: 123,
