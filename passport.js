@@ -3,10 +3,12 @@ const app = express();
 
 const session = require("express-session");
 const passport = require("passport");
-const localstrategy = require("passport-local").Strategy;
+const LocalStrategy = require("passport-local").Strategy;
 
+// Middleware for parsing form data
 app.use(express.urlencoded({ extended: false }));
 
+// Configure session middleware
 app.use(
   session({
     secret: "secret",
@@ -15,54 +17,58 @@ app.use(
   })
 );
 
+// Initialize passport
 app.use(passport.initialize());
 app.use(passport.session());
 
-authUser = (user, password, done) => {
-  console.log(`Value of "user" is ${user}`);
-  console.log(`Valuey of "password" is ${password}`);
+// Authentication logic
+const authUser = (username, password, done) => {
+  console.log(`Value of "username" is ${username}`);
+  console.log(`Value of "password" is ${password}`);
 
-  let authenticated_user = {
-    id: 123,
-    name: "prajwal",
-  };
-
-  return done(null, authenticated_user);
+  if (username === "prajwal" && password === "1234") {
+    const authenticatedUser = { id: 123, name: "prajwal" };
+    return done(null, authenticatedUser);
+  } else {
+    return done(null, false, { message: "Invalid credentials" });
+  }
 };
 
-passport.use(new localstrategy(authUser));
+// Configure passport local strategy
+passport.use(new LocalStrategy(authUser));
 
+// Serialize user to session
 passport.serializeUser((user, done) => {
   console.log("serialize user");
   console.log(user);
   done(null, user.id);
 });
 
-passport.deserializeUser((user, done) => {
-  console.log("deserialize the user");
-  console.log(user.id);
-  done(null, { name: "prajwal", id: 123 });
+// Deserialize user from session
+passport.deserializeUser((id, done) => {
+  console.log("deserialize user");
+  done(null, { name: "prajwal", id });
 });
 
-let count = 1;
-printData = (req, res, next) => {
+// Middleware to print request body
+const printData = (req, res, next) => {
   console.log(`req.body.username -- > ${req.body.username}`);
   console.log(`req.body.password -- > ${req.body.password}`);
   next();
 };
 
 app.use(printData);
-app.listen(3001, () => {
-  console.log("Server started at 3001");
+
+// Set view engine for rendering EJS templates
+app.set("view engine", "ejs");
+
+// Routes
+app.get("/", (req, res) => {
+  res.send("Welcome to my Node.js app!");
 });
 
 app.get("/login", (req, res) => {
-  // this shouled be in the views
-
-  res.render("login.ejs");
-});
-app.get("/", (req, res) => {
-  res.send("Welcome to my Node.js app!");
+  res.render("login");
 });
 
 app.post(
@@ -74,5 +80,15 @@ app.post(
 );
 
 app.get("/dashboard", (req, res) => {
-  res.render("dashboard.ejs", { name: req.body.name });
+  if (req.isAuthenticated()) {
+    res.render("dashboard", { name: req.user.name });
+  } else {
+    res.redirect("/login");
+  }
+});
+
+// Start the server
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => {
+  console.log(`Server started at ${PORT}`);
 });
