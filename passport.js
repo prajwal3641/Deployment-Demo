@@ -61,6 +61,9 @@ app.get("/login", (req, res) => {
 
   res.render("login.ejs");
 });
+app.get("/", (req, res) => {
+  res.send("Welcome to my Node.js app!");
+});
 
 app.post(
   "/login",
